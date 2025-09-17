@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FACT 소통유형 진단</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        /* Custom styles for animations and layout */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-bar-inner {
+            transition: width 0.3s ease-in-out;
+        }
+        .result-chart-dot {
+            transition: all 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div id="app" class="w-full max-w-2xl mx-auto">
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-white p-8 rounded-2xl shadow-lg text-center fade-in">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">FACT 소통유형 진단</h1>
+            <p class="text-gray-600 mb-8">나의 소통 스타일을 알아보고, 다른 사람들과 더 원활하게 소통하는 방법을 찾아보세요.</p>
+            <button id="start-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                진단 시작하기
+            </button>
+        </div>
+
+        <!-- Diagnosis Screen -->
+        <div id="diagnosis-screen" class="hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-lg fade-in">
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-semibold text-blue-600">진행률</span>
+                        <span id="progress-text" class="text-sm font-semibold text-gray-700">1 / 20</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full progress-bar-inner" style="width: 5%;"></div>
+                    </div>
+                </div>
+                
+                <div id="question-container" class="text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-8" id="question-title"></h2>
+                    <div class="space-y-4">
+                        <button class="answer-btn w-full text-left p-5 bg-gray-100 hover:bg-blue-100 border-2 border-transparent hover:border-blue-500 rounded-lg transition duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                            <span class="text-lg text-gray-700"></span>
+                        </button>
+                        <button class="answer-btn w-full text-left p-5 bg-gray-100 hover:bg-blue-100 border-2 border-transparent hover:border-blue-500 rounded-lg transition duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                             <span class="text-lg text-gray-700"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden">
+            <div class="bg-white p-8 rounded-2xl shadow-lg fade-in">
+                <div class="text-center mb-8">
+                    <p class="text-gray-600 mb-2">당신의 소통 유형은</p>
+                    <h1 id="result-type-title" class="text-4xl font-bold text-blue-600"></h1>
+                </div>
+
+                <!-- Result Chart -->
+                <div class="mb-8">
+                    <div class="w-full max-w-sm mx-auto aspect-square border-2 border-gray-300 grid grid-cols-2 grid-rows-2 relative">
+                        <div class="absolute top-1/2 left-0 w-full h-px bg-gray-300 -translate-y-1/2"></div>
+                        <div class="absolute left-1/2 top-0 h-full w-px bg-gray-300 -translate-x-1/2"></div>
+                        
+                        <!-- Labels -->
+                        <span class="absolute top-1/2 -left-8 font-bold text-gray-500 -translate-y-1/2">R</span>
+                        <span class="absolute top-1/2 -right-8 font-bold text-gray-500 -translate-y-1/2">O</span>
+                        <span class="absolute -top-8 left-1/2 font-bold text-gray-500 -translate-x-1/2">D</span>
+                        <span class="absolute -bottom-8 left-1/2 font-bold text-gray-500 -translate-x-1/2">C</span>
+
+                        <div class="flex items-center justify-center border-r border-b border-gray-200"><span class="text-lg font-bold text-gray-400">주도형</span></div>
+                        <div class="flex items-center justify-center border-b border-l border-gray-200"><span class="text-lg font-bold text-gray-400">표출형</span></div>
+                        <div class="flex items-center justify-center border-t border-r border-gray-200"><span class="text-lg font-bold text-gray-400">분석형</span></div>
+                        <div class="flex items-center justify-center border-l border-t border-gray-200"><span class="text-lg font-bold text-gray-400">우호형</span></div>
+
+                        <!-- Result Dot -->
+                        <div id="result-dot" class="absolute w-5 h-5 bg-red-500 rounded-full border-4 border-white shadow-lg result-chart-dot" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+                    </div>
+                </div>
+                
+                <!-- Result Details -->
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-4">유형 특징</h3>
+                        <p id="result-description" class="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg"></p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800 border-b-2 border-blue-500 pb-2 mb-4">소통 방안</h3>
+                        <div id="result-communication" class="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg"></div>
+                    </div>
+                </div>
+
+                <button id="retry-btn" class="w-full mt-10 bg-gray-600 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-gray-300">
+                    다시 진단하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            // UI Elements
+            screens: {
+                start: document.getElementById('start-screen'),
+                diagnosis: document.getElementById('diagnosis-screen'),
+                result: document.getElementById('result-screen'),
+            },
+            buttons: {
+                start: document.getElementById('start-btn'),
+                answer: document.querySelectorAll('.answer-btn'),
+                retry: document.getElementById('retry-btn'),
+            },
+            
+            // Diagnosis Elements
+            progress: {
+                text: document.getElementById('progress-text'),
+                bar: document.getElementById('progress-bar'),
+            },
+            question: {
+                container: document.getElementById('question-container'),
+                title: document.getElementById('question-title'),
+            },
+            
+            // Result Elements
+            result: {
+                typeTitle: document.getElementById('result-type-title'),
+                dot: document.getElementById('result-dot'),
+                description: document.getElementById('result-description'),
+                communication: document.getElementById('result-communication'),
+            },
+
+            // State
+            currentQuestionIndex: 0,
+            scores: { D: 0, C: 0, O: 0, R: 0 },
+
+            // Data
+            questions: [
+                { "q": "새로운 변화에", "options": [{ "text": "모험을 감수하며 주도적으로 대처한다.", "score": "D" }, { "text": "예측 가능한 방법으로 신중하게 대응한다.", "score": "C" }] },
+                { "q": "사람들과 교류할 때", "options": [{ "text": "다양한 사람들과 넓게 어울리며 교류하는 편이다.", "score": "O" }, { "text": "관심이 가는 사람들과 깊게 어울리며 교류하는 편이다.", "score": "R" }] },
+                { "q": "의견을 말할 때", "options": [{ "text": "내 의견을 먼저 밝히고 상대의 의견을 듣는다.", "score": "D" }, { "text": "상대의 의견을 먼저 듣고 내 의견을 말한다.", "score": "C" }] },
+                { "q": "여럿이 일을 할 때", "options": [{ "text": "사람들과 즐겁게 일하는 것을 중요시 한다.", "score": "O" }, { "text": "일하는 과정이나 결과를 중요시 하는 편이다.", "score": "R" }] },
+                { "q": "회의를 할 때", "options": [{ "text": "주제와 관련하여 먼저 내 의견을 밝힌다.", "score": "D" }, { "text": "참석자들의 의견을 반영하여 내 의견을 밝힌다.", "score": "C" }] },
+                { "q": "여러 사람들과 어울리는 자리에서", "options": [{ "text": "내가 먼저 남에게 다가가는 편이다.", "score": "O" }, { "text": "남들이 다가오면 대응하는 편이다.", "score": "R" }] },
+                { "q": "상대와 대화할 때", "options": [{ "text": "나의 관점을 토대로 대화를 주도한다.", "score": "D" }, { "text": "상대의 관점에서 보조를 맞춘다.", "score": "C" }] },
+                { "q": "상대와 대화할 때", "options": [{ "text": "제스처를 많이 사용하며 유머와 농담을 즐기는 편이다.", "score": "O" }, { "text": "제스처가 많지 않으며 진지한 편이다.", "score": "R" }] },
+                { "q": "메시지를 전달할 때", "options": [{ "text": "명확한 전달을 위해 직선적으로 표현한다.", "score": "D" }, { "text": "상대의 정서를 고려하여 우회적으로 표현한다.", "score": "C" }] },
+                { "q": "잘 모르는 사람들과", "options": [{ "text": "일과 관계 없어도 잘 어울린다.", "score": "O" }, { "text": "일과 관계 없이 어울리는 것을 즐기지 않는다.", "score": "R" }] },
+                { "q": "일상적인 대화에서", "options": [{ "text": "내가 원하는 주제에 초점을 두고 대화하는 것을 선호한다.", "score": "D" }, { "text": "다른 사람들이 제기하는 주제를 수용하며 대화를 이어간다.", "score": "C" }] },
+                { "q": "상대의 발언이나 행동에 대해", "options": [{ "text": "내 감정을 겉으로 표현한다.", "score": "O" }, { "text": "불편하더라도 가급적 표현하지 않는다.", "score": "R" }] },
+                { "q": "말하는 스타일은", "options": [{ "text": "단정적 또는 결론지향적으로 말하는 편이다.", "score": "D" }, { "text": "상대의 의견을 묻는 질문을 자주 하는 편이다.", "score": "C" }] },
+                { "q": "상대와 갈등이 생겼을 때", "options": [{ "text": "솔직하게 나의 감정을 드러내는 편이다.", "score": "O" }, { "text": "가급적 감정표현을 자제하는 편이다.", "score": "R" }] },
+                { "q": "의사결정 상황에서", "options": [{ "text": "핵심요소 중심으로 신속하게 결정한다.", "score": "D" }, { "text": "여러 요소를 고려하여 신중하게 결정한다.", "score": "C" }] },
+                { "q": "의사결정 과정에서", "options": [{ "text": "경험이나 느낌에 초점을 둔다.", "score": "O" }, { "text": "목표나 논리적 연관성에 초점을 둔다.", "score": "R" }] },
+                { "q": "일단 결정한 사항은", "options": [{ "text": "신속하게 행동으로 실천하는 편이다.", "score": "D" }, { "text": "다시 한 번 상황을 고려하고 실천하는 편이다.", "score": "C" }] },
+                { "q": "다른 사람들과 함께 일해야 하는 경우", "options": [{ "text": "기꺼이 받아 들이는 편이다.", "score": "O" }, { "text": "일정한 조건 하에서 받아 들이는 편이다.", "score": "R" }] },
+                { "q": "사람들과의 관계에서", "options": [{ "text": "내 주도권을 확대하는 방향으로 행동한다.", "score": "D" }, { "text": "상대를 수용하는 방향으로 행동한다.", "score": "C" }] },
+                { "q": "네트워크를 만들 때", "options": [{ "text": "다양한 사람들과 네트워크를 확장하고 활발하게 교류하려 한다.", "score": "O" }, { "text": "필요한 사람들과 네트워크를 만들고 유지하려 한다.", "score": "R" }] }
+            ],
+            resultData: {
+                Controller: {
+                    title: "주도형 (Controller)",
+                    description: "목표달성과 승리를 중요하게 생각합니다. 자아가 강하고 목표 지향적이며, 도전에 의해 동기부여 됩니다. 통제권을 상실하거나 이용당하는 것을 두려워하며, 압박감 속에서는 다른 사람의 견해나 감정을 고려하지 않을 수 있습니다.",
+                    communication: `
+                        <ul class="list-disc list-inside space-y-2">
+                          <li>상대의 목표와 성과에 초점을 맞추세요.</li>
+                          <li>상대의 통제권 범위를 인정해주세요.</li>
+                          <li>결론과 핵심 포인트를 먼저 말하는 것이 효과적입니다.</li>
+                          <li>성공 가능성이 높은 방안을 제시하세요.</li>
+                          <li>성과를 인정하고 칭찬해주세요.</li>
+                        </ul>`
+                },
+                Talker: {
+                    title: "표출형 (Talker)",
+                    description: "다른 사람에게 어떻게 보이는지가 중요합니다. 낙천적이고 사람 지향적이며, 사회적 인정이나 칭찬에 의해 동기부여 됩니다. 다른 사람들로부터 거부당하는 것을 두려워하며, 압박감 속에서는 일을 체계적으로 처리하지 못할 수 있습니다.",
+                    communication: `
+                        <ul class="list-disc list-inside space-y-2">
+                          <li>존재감을 공개적으로 인정하고 칭찬해주세요.</li>
+                          <li>감성적 논쟁에 빠지지 말고 이성적으로 대화하세요.</li>
+                          <li>적절한 질문을 활용하여 효율적으로 대화하세요.</li>
+                          <li>구체적인 사항까지 고려할 수 있도록 도와주세요.</li>
+                          <li>협의 내용은 가급적 서면으로 남기는 것이 좋습니다.</li>
+                        </ul>`
+                },
+                Analyst: {
+                    title: "분석형 (Analyst)",
+                    description: "정확성을 높이기 위해 사실을 중심으로 신중하고 분석적으로 일합니다. 세부적인 사항에 주의를 기울이고 과업 지향적입니다. 정확성과 양질을 요구하는 것에 의해 동기부여 됩니다. 자신의 작업에 대한 타인의 비판을 두려워하며, 압박감 속에서는 타인에 대한 기대가 높고 비판적일 수 있습니다.",
+                    communication: `
+                        <ul class="list-disc list-inside space-y-2">
+                          <li>상대의 신중한 생각과 행동을 인정해주세요.</li>
+                          <li>안전한 판단을 하도록 정확한 자료를 준비하세요.</li>
+                          <li>상황과 의견을 객관적으로 전달하세요.</li>
+                          <li>구체적인 사실과 증거로 말하세요.</li>
+                          <li>일의 진행과정과 품질을 중요시하세요.</li>
+                        </ul>`
+                },
+                Facilitator: {
+                    title: "우호형 (Facilitator)",
+                    description: "협력을 통한 목표달성을 중요하게 생각하며, 결과보다 팀워크와 우정이 형성되는 것을 더 중요하게 여깁니다. 정해진 방식에 따라 행동하고 팀 지향적입니다. 현재 상태를 안정적으로 유지하는 것에 동기부여 됩니다. 안정성을 잃거나 변화하는 것을 두려워하며, 압박감 속에서는 남을 위해 자신을 지나치게 양보할 수 있습니다.",
+                    communication: `
+                        <ul class="list-disc list-inside space-y-2">
+                          <li>상대방의 심리적 안정을 우선하세요.</li>
+                          <li>상대방에게 개인적인 관심을 보여주세요.</li>
+                          <li>의견을 제시할 때는 리스크 요소를 제거하세요.</li>
+                          <li>항상 함께 한다는 사실을 수시로 확인시켜주세요.</li>
+                          <li>상대가 신뢰감을 자주 느낄 수 있도록 하세요.</li>
+                        </ul>`
+                },
+            },
+
+            init() {
+                this.buttons.start.addEventListener('click', () => this.startDiagnosis());
+                this.buttons.retry.addEventListener('click', () => this.retry());
+                this.buttons.answer.forEach((btn, index) => {
+                    btn.addEventListener('click', () => {
+                        const scoreType = this.questions[this.currentQuestionIndex].options[index].score;
+                        this.handleAnswer(scoreType);
+                    });
+                });
+            },
+
+            startDiagnosis() {
+                this.currentQuestionIndex = 0;
+                this.scores = { D: 0, C: 0, O: 0, R: 0 };
+                this.screens.start.classList.add('hidden');
+                this.screens.result.classList.add('hidden');
+                this.screens.diagnosis.classList.remove('hidden');
+                this.displayQuestion();
+            },
+
+            displayQuestion() {
+                if (this.currentQuestionIndex < this.questions.length) {
+                    const q = this.questions[this.currentQuestionIndex];
+                    this.progress.text.textContent = `${this.currentQuestionIndex + 1} / ${this.questions.length}`;
+                    this.progress.bar.style.width = `${((this.currentQuestionIndex + 1) / this.questions.length) * 100}%`;
+                    this.question.title.textContent = q.q;
+                    this.buttons.answer.forEach((btn, index) => {
+                        btn.querySelector('span').textContent = q.options[index].text;
+                    });
+                     // Add animation for next question
+                    this.question.container.classList.remove('fade-in');
+                    void this.question.container.offsetWidth; // Trigger reflow
+                    this.question.container.classList.add('fade-in');
+
+                } else {
+                    this.showResult();
+                }
+            },
+
+            handleAnswer(scoreType) {
+                this.scores[scoreType]++;
+                this.currentQuestionIndex++;
+                this.displayQuestion();
+            },
+
+            showResult() {
+                this.screens.diagnosis.classList.add('hidden');
+                this.screens.result.classList.remove('hidden');
+
+                const verticalScore = this.scores.D - this.scores.C; // D(top) - C(bottom)
+                const horizontalScore = this.scores.O - this.scores.R; // O(right) - R(left)
+
+                let resultType = '';
+                if (verticalScore >= 0 && horizontalScore < 0) resultType = 'Controller'; // Top-Left
+                else if (verticalScore >= 0 && horizontalScore >= 0) resultType = 'Talker'; // Top-Right
+                else if (verticalScore < 0 && horizontalScore < 0) resultType = 'Analyst'; // Bottom-Left
+                else if (verticalScore < 0 && horizontalScore >= 0) resultType = 'Facilitator'; // Bottom-Right
+
+                const resultInfo = this.resultData[resultType];
+                this.result.typeTitle.textContent = resultInfo.title;
+                this.result.description.innerHTML = resultInfo.description;
+                this.result.communication.innerHTML = resultInfo.communication;
+
+                // Max possible score difference is 10. Map [-10, 10] to [0, 100] for positioning.
+                // Left: 50 + (score * 5) -> e.g., -10 -> 0%, 0 -> 50%, 10 -> 100%
+                // Top: 50 - (score * 5) -> e.g., 10 -> 0%, 0 -> 50%, -10 -> 100%
+                const leftPercent = 50 + (horizontalScore * 5);
+                const topPercent = 50 - (verticalScore * 5);
+                
+                // Set dot position after a short delay for animation
+                setTimeout(() => {
+                    this.result.dot.style.left = `${leftPercent}%`;
+                    this.result.dot.style.top = `${topPercent}%`;
+                }, 100);
+            },
+
+            retry() {
+                // Reset dot position
+                this.result.dot.style.left = `50%`;
+                this.result.dot.style.top = `50%`;
+                
+                this.screens.result.classList.add('hidden');
+                this.screens.start.classList.remove('hidden');
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
